@@ -4,6 +4,7 @@ import java.util.List;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.persistence.TypedQuery;
 
 import org.springframework.stereotype.Repository;
 
@@ -39,19 +40,25 @@ public class UserDaoImpl implements UserDao {
 
     @Override
     public List<User> getAllUsers() {
-        return entityManager
-                .createQuery("SELECT u FROM User u", User.class)
-                .getResultList();
+        TypedQuery<User> query = entityManager.createQuery(
+                "SELECT DISTINCT u FROM User u LEFT JOIN FETCH u.roles",
+                User.class
+        );
+        return query.getResultList();
     }
 
     @Override
     public User getUserByUsername(String username) {
-        List<User> users = entityManager
-                .createQuery("SELECT u FROM User u JOIN FETCH u.roles WHERE u.username = :username", User.class)
-                .setParameter("username", username)
-                .getResultList();
-        return users.isEmpty() ? null : users.get(0);
+        TypedQuery<User> query = entityManager.createQuery(
+                "SELECT u FROM User u LEFT JOIN FETCH u.roles WHERE u.username = :username",
+                User.class
+        );
+        query.setParameter("username", username);
+
+        List<User> result = query.getResultList();
+        return result.isEmpty() ? null : result.get(0);
     }
 }
+
 
 

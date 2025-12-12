@@ -4,11 +4,7 @@ import java.util.List;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 import ru.kata.spring.boot_security.demo.model.User;
 import ru.kata.spring.boot_security.demo.service.UserService;
@@ -27,30 +23,31 @@ public class AdminController {
     public String allUsers(Model model) {
         List<User> users = userService.getAll();
         model.addAttribute("users", users);
-        return "admin/users"; // templates/admin/users.html
+        return "admin/users";
     }
 
     @GetMapping("/add")
     public String addUserForm(Model model) {
         model.addAttribute("user", new User());
-        return "admin/user-form"; // templates/admin/user-form.html
+        return "admin/user-form";
     }
 
     @PostMapping("/save")
-    public String saveUser(@ModelAttribute("user") User user) {
-        if (user.getId() == null) {
-            userService.create(user);
-        } else {
-            userService.update(user);
-        }
+    public String createUser(@ModelAttribute("user") User user) {
+        userService.create(user);
         return "redirect:/admin";
     }
 
     @GetMapping("/edit")
     public String editUser(@RequestParam("id") Long id, Model model) {
-        User user = userService.getById(id);
-        model.addAttribute("user", user);
+        model.addAttribute("user", userService.getById(id));
         return "admin/user-form";
+    }
+
+    @PostMapping("/update")
+    public String updateUser(@ModelAttribute("user") User user) {
+        userService.update(user);
+        return "redirect:/admin";
     }
 
     @PostMapping("/delete")
@@ -59,4 +56,5 @@ public class AdminController {
         return "redirect:/admin";
     }
 }
+
 

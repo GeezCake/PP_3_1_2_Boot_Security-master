@@ -41,7 +41,7 @@ public class User implements UserDetails {
     @Column(name = "email")
     private String email;
 
-    @ManyToMany(fetch = FetchType.EAGER)
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "users_roles",
             joinColumns = @JoinColumn(name = "user_id"),
@@ -52,8 +52,11 @@ public class User implements UserDetails {
     public User() {
     }
 
-    public User(String username, String password, String firstName,
-                String lastName, String email) {
+    public User(String username,
+                String password,
+                String firstName,
+                String lastName,
+                String email) {
         this.username = username;
         this.password = password;
         this.firstName = firstName;
@@ -61,6 +64,7 @@ public class User implements UserDetails {
         this.email = email;
     }
 
+    // ========= обычные геттеры/сеттеры =========
 
     public Long getId() {
         return id;
@@ -120,30 +124,31 @@ public class User implements UserDetails {
         this.roles = roles;
     }
 
+    // ========= реализация UserDetails =========
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return roles; // Role уже Implements GrantedAuthority
+        return roles;
     }
 
     @Override
     public boolean isAccountNonExpired() {
-        return true; // при необходимости можно добавить поле в БД
+        return true; // можно вынести в поле, если нужно
     }
 
     @Override
     public boolean isAccountNonLocked() {
-        return true;
+        return true; // аналогично
     }
 
     @Override
     public boolean isCredentialsNonExpired() {
-        return true;
+        return true; // аналогично
     }
 
     @Override
     public boolean isEnabled() {
-        return true;
+        return true; // можно добавить поле enabled
     }
 
     @Override
@@ -155,5 +160,6 @@ public class User implements UserDetails {
                 '}';
     }
 }
+
 
 

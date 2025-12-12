@@ -9,9 +9,10 @@
 
 <h1 th:text="${user.id} == null ? 'Add user' : 'Edit user'">User form</h1>
 
-<form th:action="@{/admin/save}" th:object="${user}" method="post">
+<form th:action="${user.id} == null ? @{/admin/save} : @{/admin/update}"
+      th:object="${user}"
+      method="post">
 
-    <!-- id (скрытое поле, нужно для edit) -->
     <input type="hidden" th:field="*{id}"/>
 
     <div>
@@ -44,7 +45,6 @@
         </label>
     </div>
 
-
     <input type="hidden"
            th:name="${_csrf.parameterName}"
            th:value="${_csrf.token}"/>
@@ -58,5 +58,6 @@
 
 </body>
 </html>
+
 
 
