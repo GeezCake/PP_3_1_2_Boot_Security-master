@@ -133,6 +133,7 @@
     function switchToUsersTab() {
         const usersTabLink = document.getElementById('users-tab');
         if (usersTabLink) {
+            // Bootstrap 4: use jQuery to activate tab
             window.jQuery && window.jQuery(usersTabLink).tab('show');
         }
     }

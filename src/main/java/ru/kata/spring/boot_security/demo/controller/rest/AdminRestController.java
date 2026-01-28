@@ -1,9 +1,6 @@
 package ru.kata.spring.boot_security.demo.controller.rest;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,7 +17,8 @@ import org.springframework.web.server.ResponseStatusException;
 import ru.kata.spring.boot_security.demo.dto.RoleDto;
 import ru.kata.spring.boot_security.demo.dto.UserRequestDto;
 import ru.kata.spring.boot_security.demo.dto.UserResponseDto;
-import ru.kata.spring.boot_security.demo.model.Role;
+import ru.kata.spring.boot_security.demo.mapper.RoleMapper;
+import ru.kata.spring.boot_security.demo.mapper.UserMapper;
 import ru.kata.spring.boot_security.demo.model.User;
 import ru.kata.spring.boot_security.demo.service.RoleService;
 import ru.kata.spring.boot_security.demo.service.UserService;
@@ -31,18 +29,22 @@ public class AdminRestController {
 
     private final UserService userService;
     private final RoleService roleService;
+    private final UserMapper userMapper;
+    private final RoleMapper roleMapper;
 
-    public AdminRestController(UserService userService, RoleService roleService) {
+    public AdminRestController(UserService userService,
+                               RoleService roleService,
+                               UserMapper userMapper,
+                               RoleMapper roleMapper) {
         this.userService = userService;
         this.roleService = roleService;
+        this.userMapper = userMapper;
+        this.roleMapper = roleMapper;
     }
 
     @GetMapping("/users")
     public List<UserResponseDto> getAllUsers() {
-        return userService.getAllUsers()
-                .stream()
-                .map(this::toUserResponseDto)
-                .collect(Collectors.toList());
+        return userMapper.toDtoList(userService.getAllUsers());
     }
 
     @GetMapping("/users/{id}")
@@ -51,16 +53,17 @@ public class AdminRestController {
         if (user == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found: " + id);
         }
-        return toUserResponseDto(user);
+        return userMapper.toDto(user);
     }
 
     @PostMapping("/users")
     public ResponseEntity<UserResponseDto> createUser(@RequestBody UserRequestDto dto) {
-        User user = fromUserRequestDto(dto);
+        User user = userMapper.toEntity(dto, roleService);
         user.setId(null);
         userService.createUser(user);
         // после persist id уже установлен
-        return ResponseEntity.status(HttpStatus.CREATED).body(toUserResponseDto(userService.getUserByUsername(user.getUsername())));
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(userMapper.toDto(userService.getUserByUsername(user.getUsername())));
     }
 
     @PutMapping("/users")
@@ -74,10 +77,10 @@ public class AdminRestController {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found: " + dto.getId());
         }
 
-        User user = fromUserRequestDto(dto);
+        User user = userMapper.toEntity(dto, roleService);
         userService.updateUser(user);
         User updated = userService.getUserById(dto.getId());
-        return toUserResponseDto(updated);
+        return userMapper.toDto(updated);
     }
 
     @DeleteMapping("/users/{id}")
@@ -92,53 +95,6 @@ public class AdminRestController {
 
     @GetMapping("/roles")
     public List<RoleDto> getAllRoles() {
-        return roleService.getAllRoles()
-                .stream()
-                .map(r -> new RoleDto(r.getId(), r.getName()))
-                .collect(Collectors.toList());
-    }
-
-    private User fromUserRequestDto(UserRequestDto dto) {
-        User user = new User();
-        user.setId(dto.getId());
-        user.setUsername(dto.getUsername());
-        user.setPassword(dto.getPassword());
-        user.setFirstName(dto.getFirstName());
-        user.setLastName(dto.getLastName());
-        user.setAge(dto.getAge());
-        user.setEmail(dto.getEmail());
-
-        Set<Role> roles = new HashSet<>();
-        if (dto.getRoleIds() != null) {
-            for (Long roleId : dto.getRoleIds()) {
-                if (roleId == null) {
-                    continue;
-                }
-                Role role = roleService.getRoleById(roleId);
-                if (role != null) {
-                    roles.add(role);
-                }
-            }
-        }
-        user.setRoles(roles);
-        return user;
-    }
-
-    private UserResponseDto toUserResponseDto(User user) {
-        UserResponseDto dto = new UserResponseDto();
-        dto.setId(user.getId());
-        dto.setUsername(user.getUsername());
-        dto.setFirstName(user.getFirstName());
-        dto.setLastName(user.getLastName());
-        dto.setAge(user.getAge());
-        dto.setEmail(user.getEmail());
-
-        if (user.getRoles() != null) {
-            dto.setRoles(user.getRoles()
-                    .stream()
-                    .map(r -> new RoleDto(r.getId(), r.getName()))
-                    .collect(Collectors.toSet()));
-        }
-        return dto;
+        return roleMapper.toDtoList(roleService.getAllRoles());
     }
 }

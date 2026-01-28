@@ -4,6 +4,8 @@ import java.util.HashSet;
 
 import javax.annotation.PostConstruct;
 
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.springframework.stereotype.Component;
 
 import ru.kata.spring.boot_security.demo.model.Role;
